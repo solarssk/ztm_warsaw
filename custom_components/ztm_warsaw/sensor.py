@@ -151,7 +151,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
             "manufacturer": "Zarząd Transportu Miejskiego",
             "entry_type": "service",
             "model": get_line_type(self._line),
-            "sw_version": stop_info.get("obowiazuje_od"),
             "configuration_url": self._timetable_url(),
         }
 
@@ -337,8 +336,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._attributes["Stop, Street ID"] = stop_info.get("id_ulicy", "Not available")
         self._attributes["Stop, Latitude"] = stop_info.get("szer_geo", "Not available")
         self._attributes["Stop, Longitude"] = stop_info.get("dlug_geo", "Not available")
-        self._attributes["Stop, Direction"] = stop_info.get("kierunek", "Not available")
-        self._attributes["Stop, Effective From"] = stop_info.get("obowiazuje_od", "Not available")
         self._attributes["Stop, Timezone"] = "Europe/Warsaw"
         self._attributes[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
 
@@ -386,8 +383,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
             self._attributes["Stop, Street ID"] = stop_info.get("id_ulicy", "Not available")
             self._attributes["Stop, Latitude"] = stop_info.get("szer_geo", "Not available")
             self._attributes["Stop, Longitude"] = stop_info.get("dlug_geo", "Not available")
-            self._attributes["Stop, Direction"] = stop_info.get("kierunek", "Not available")
-            self._attributes["Stop, Effective From"] = stop_info.get("obowiazuje_od", "Not available")
         else:
             self._attributes["Stop, Name"] = "Not available"
             self._attributes["Stop, Street ID"] = "Not available"

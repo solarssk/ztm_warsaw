@@ -78,7 +78,7 @@ class ZTMStopClient:
         # Endpoint to fetch the timetable for a given stop, line, and post number
         self._endpoint = "https://api.um.warszawa.pl/api/action/dbtimetable_get/"
         # Endpoint to fetch metadata for stops (name, location, etc.)
-        self._stop_info_endpoint = "https://api.um.warszawa.pl/api/action/dbstore_get/"
+        self._stop_info_endpoint = "https://api.um.warszawa.pl/api/action/dbtimetable_get/"
         self._stop_info_data_id = "ab75c33d-3a26-4342-b36a-6e5fef0a3ac3"
         self._data_id = "e923fa0e-d96c-43f9-ae6e-60518c9f3238"  # timetable endpoint id (dbtimetable_get)
         self._timeout = timeout or 20
