@@ -188,6 +188,7 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         if not self.coordinator or not self.coordinator.data:
             _LOGGER.warning("No timetable data available from coordinator for %s", self.entity_id)
             self._set_no_departures()
+            self.async_write_ha_state()
             return
 
         data = self.coordinator.data
@@ -210,6 +211,7 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         if not valid_departures:
             _LOGGER.info("No valid departures found for %s", self.entity_id)
             self._set_no_departures()
+            self.async_write_ha_state()
             return
         
         _LOGGER.debug("Found %d valid departures for %s", len(valid_departures), self.entity_id)
@@ -220,6 +222,7 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         except Exception as e:
             _LOGGER.error("Failed to sort departures for %s: %s", self.entity_id, e)
             self._set_no_departures()
+            self.async_write_ha_state()
             return
 
         # Get current time
@@ -281,6 +284,7 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
                     _LOGGER.info("Day line %s: hiding schedule (new rule) - last departure at %s (%s ago), current time %s [in night window]",
                             self._line, last_departure, time_since_last, now_warsaw)
                     self._set_no_departures()
+                    self.async_write_ha_state()
                     return
         
         # If there are no future departures and we are not hiding the schedule
@@ -289,6 +293,7 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
             self._previous_departure = self._next_departure
             self._next_departure = None
             self._set_no_departures()
+            self.async_write_ha_state()
             return
         
         # Update stop name if available
@@ -405,6 +410,8 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         if self._next_departure is not None:
             self._previous_departure = None
             self._next_departure = None
+        else:
+            self._previous_departure = None
 
     async def async_will_remove_from_hass(self):
         """Cancel any scheduled listener when removing."""

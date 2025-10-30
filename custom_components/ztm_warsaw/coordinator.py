@@ -92,6 +92,14 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("ZTM Coordinator [%s] — fetching new schedule data", self.name)
         try:
             new_data = await self.client.get()
+            if new_data is None:
+                if self.data is not None:
+                    _LOGGER.warning(
+                        "ZTM Coordinator [%s] — timetable fetch failed; keeping cached data",
+                        self.name,
+                    )
+                    return self.data
+                raise UpdateFailed("Timetable fetch failed and no cached data available")
             
             data_changed = False
             if self.data is None:
