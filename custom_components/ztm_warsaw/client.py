@@ -112,6 +112,9 @@ class ZTMStopClient:
             try:
                 async with async_timeout.timeout(self._timeout):
                     async with self._session.get(url, params=params, allow_redirects=True) as resp:
+                        if resp.content_length and resp.content_length > 2_000_000:
+                            _LOGGER.error("Response too large (%d bytes) from %s; skipping", resp.content_length, url)
+                            return None
                         text = await resp.text()
                         # Retry on 5xx
                         if 500 <= resp.status <= 599 and attempt < self._max_retries:

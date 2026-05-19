@@ -5,13 +5,13 @@
 
 ## 1. Supported Versions
 
-I actively maintain **only the latest major branch (1.x)**.  
-Older branches receive *no* patches, even for severe issues.
+I actively maintain **only the latest release**.  
+Older versions receive *no* patches, even for severe issues.
 
-| Version | Status | Notes                      |
-|---------|--------|----------------------------|
-| `1.x`   | ✅ **Supported** | Bug & security fixes |
-| `< 1.0` | ❌ **End-of-Life** | Please upgrade      |
+| Version   | Status | Notes                      |
+|-----------|--------|----------------------------|
+| `1.1.4`   | ✅ **Supported** | Current stable release |
+| `< 1.1.4` | ❌ **End-of-Life** | Please upgrade      |
 
 If you discover a vulnerability while running an EOL version, upgrade first and confirm it also exists in the current release before filing a report.
 
@@ -79,4 +79,4 @@ This integration merely **reads** publicly available information from the City o
 
 ---
 
-*Last updated: 2025-04-26* | Maintainer: **@solarssk**
+*Last updated: 2026-05-20* | Maintainer: **@solarssk**
