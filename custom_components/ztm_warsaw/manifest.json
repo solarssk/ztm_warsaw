@@ -8,5 +8,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/solarssk/ztm_warsaw/issues",
   "requirements": ["aiohttp"],
-  "version": "1.1.4b4"
+  "version": "1.1.4b5"
 }
