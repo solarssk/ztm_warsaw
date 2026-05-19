@@ -15,7 +15,7 @@ from .const import DOMAIN, CONF_API_KEY, CONF_BUSSTOP_ID, CONF_BUSSTOP_NR, CONF_
 
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 20  # seconds
+TIMEOUT = aiohttp.ClientTimeout(total=20)
 RETRIES = 1   # number of retries for timeout/5xx during validation
 BACKOFF = 1.5 # seconds backoff multiplier
 
