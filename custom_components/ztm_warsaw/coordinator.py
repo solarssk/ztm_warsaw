@@ -2,12 +2,10 @@ import logging
 from datetime import datetime, timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-import asyncio
-import random
-from homeassistant.helpers.event import async_call_later, async_track_time_interval
+from homeassistant.helpers.event import async_track_time_interval
 
 from .client import ZTMStopClient
-from .models import ZTMDepartureData, ZTMDepartureDataReading
+from .models import ZTMDepartureData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,6 +90,14 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("ZTM Coordinator [%s] — fetching new schedule data", self.name)
         try:
             new_data = await self.client.get()
+            if new_data is None:
+                if self.data is not None:
+                    _LOGGER.warning(
+                        "ZTM Coordinator [%s] — timetable fetch failed; keeping cached data",
+                        self.name,
+                    )
+                    return self.data
+                raise UpdateFailed("Timetable fetch failed and no cached data available")
             
             data_changed = False
             if self.data is None:
@@ -126,6 +132,8 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
             )
             return new_data
             
+        except UpdateFailed:
+            raise
         except Exception as err:
             if self.data is not None:
                 # Keep entity available with last known data; try again on next hourly tick
@@ -137,18 +145,6 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
                 return self.data
             _LOGGER.error("ZTM Coordinator [%s] — failed fetching schedule and no cached data", self.name)
             raise UpdateFailed(f"Error fetching data: {err}") from err
-
-    async def _maybe_refresh_stop_info(self):
-        """Refresh stop metadata at most once per day."""
-        today = dt_util.now().date()
-        if self._last_stopinfo_refresh_date == today:
-            return
-        try:
-            await self.client.get_stop_name()
-            self._last_stopinfo_refresh_date = today
-            _LOGGER.debug("ZTM Coordinator [%s] — stop-info refreshed", self.name)
-        except Exception as err:
-            _LOGGER.debug("ZTM Coordinator [%s] — stop-info refresh failed (non-fatal): %s", self.name, err)
 
     async def async_shutdown(self):
         """Clean up when coordinator is being shut down."""

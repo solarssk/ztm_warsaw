@@ -108,7 +108,6 @@ class ZTMStopClient:
         # English-only comments for OSS clarity
         """
         attempt = 0
-        last_exc = None
         while True:
             try:
                 async with async_timeout.timeout(self._timeout):
@@ -128,7 +127,7 @@ class ZTMStopClient:
                                 "HTTP %s from %s",
                                 resp.status, url
                             )
-                            return None if not expect_json else {}
+                            return None
                         if expect_json:
                             try:
                                 return json.loads(text)
@@ -137,10 +136,9 @@ class ZTMStopClient:
                                     "Invalid JSON from %s",
                                     url
                                 )
-                                return {}
+                                return None
                         return text
-            except asyncio.TimeoutError as e:
-                last_exc = e
+            except asyncio.TimeoutError:
                 if attempt < self._max_retries:
                     _LOGGER.warning(
                         "Timeout talking to %s; retrying (%s/%s)",
@@ -153,13 +151,21 @@ class ZTMStopClient:
                     "Timeout after %ss for %s",
                     self._timeout, url
                 )
-                return None if not expect_json else {}
+                return None
             except aiohttp.ClientError as e:
+                if attempt < self._max_retries:
+                    _LOGGER.warning(
+                        "Network error for %s: %s; retrying (%s/%s)",
+                        url, e, attempt + 1, self._max_retries
+                    )
+                    attempt += 1
+                    await asyncio.sleep(self._retry_backoff * attempt)
+                    continue
                 _LOGGER.error(
                     "Network error for %s: %s",
                     url, e
                 )
-                return None if not expect_json else {}
+                return None
 
     async def get_stop_name(self) -> Optional[dict]:
         """Fetch stop metadata (name, etc.) with caching and strict validation.
@@ -413,15 +419,17 @@ class ZTMStopClient:
             if self._stop_name is None:
                 await self.get_stop_name()
             json_response = await self._get_with_retry(self._endpoint, self._params)
+            if json_response is None:
+                _LOGGER.warning(
+                    "Timetable fetch failed (no response) for %s",
+                    _ctxp(self._params),
+                )
+                return None
             if not isinstance(json_response, dict):
                 return ZTMDepartureData(departures=[], stop_info=self._stop_name)
 
             result = json_response.get("result")
             if not isinstance(result, list):
-                if result is None:
-                    return ZTMDepartureData(departures=[], stop_info=self._stop_name)
-                if isinstance(result, str):
-                    return ZTMDepartureData(departures=[], stop_info=self._stop_name)
                 return ZTMDepartureData(departures=[], stop_info=self._stop_name)
 
             # Parse each departure from the API response
@@ -448,4 +456,4 @@ class ZTMStopClient:
 
         except Exception as e:
             _LOGGER.error("Unexpected error in timetable fetch: %s", e, exc_info=True)
-        return ZTMDepartureData(departures=[], stop_info=self._stop_name)
+        return None
