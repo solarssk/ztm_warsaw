@@ -100,8 +100,8 @@ class ZTMStopClient:
             "busstopNr": stop_number,
             "line": line,
         }
-        self._stop_name = None
-        self._stop_info_cache = {}
+        self._stop_name: dict | None = None
+        self._stop_info_cache: dict[tuple[str, str], dict] = {}
 
     async def _get_with_retry(self, url: str, params: dict, *, expect_json: bool = True):
         """Perform GET with timeout and a small retry on timeout/5xx.

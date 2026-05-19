@@ -15,7 +15,7 @@ from .const import DOMAIN, CONF_API_KEY, CONF_BUSSTOP_ID, CONF_BUSSTOP_NR, CONF_
 
 _LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 20  # seconds
+TIMEOUT = aiohttp.ClientTimeout(total=20)
 RETRIES = 1   # number of retries for timeout/5xx during validation
 BACKOFF = 1.5 # seconds backoff multiplier
 
@@ -150,7 +150,7 @@ async def validate_input(api_key, stop_id, stop_nr, line):
         _LOGGER.exception("Unexpected error during validation: %s", e)
         raise ValueError("unknown")
 
-class ZtmWarsawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ZtmWarsawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     VERSION = 1
 
     async def async_step_user(self, user_input=None):

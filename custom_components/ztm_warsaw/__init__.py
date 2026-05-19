@@ -61,6 +61,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
         return False
 
+    assert api_key is not None and stop_id is not None and stop_nr is not None and line is not None
+
     session = async_get_clientsession(hass)
 
     client = ZTMStopClient(
