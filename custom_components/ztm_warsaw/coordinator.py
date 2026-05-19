@@ -110,4 +110,5 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
     async def async_shutdown(self):
         """Clean up when coordinator is being shut down."""
         self.data = None
+        await super().async_shutdown()
         _LOGGER.info("ZTM Coordinator [%s] — shutdown complete", self.name)
