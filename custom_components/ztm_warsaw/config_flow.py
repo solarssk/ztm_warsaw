@@ -150,7 +150,7 @@ async def validate_input(api_key, stop_id, stop_nr, line):
         _LOGGER.exception("Unexpected error during validation: %s", e)
         raise ValueError("unknown")
 
-class ZtmWarsawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ZtmWarsawConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
