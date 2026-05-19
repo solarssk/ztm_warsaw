@@ -77,7 +77,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         # Initialize attributes and state
         self._attributes = {}
         self._next_departure = None
-        self._previous_departure = None
         self._scheduled_unsub = None
         self._last_coordinator_update = None
 
@@ -269,7 +268,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         # No future departures and not hiding — clear next departure
         if not future_departures:
             _LOGGER.info("No future departures found for %s", self.entity_id)
-            self._previous_departure = self._next_departure
             self._next_departure = None
             self._set_no_departures()
             _write_if_changed()
@@ -300,7 +298,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         
         # Update next departure
         new_departure = future_departures[0].dt
-        self._previous_departure = self._next_departure
         self._next_departure = new_departure
         
         _LOGGER.info("Next departure for %s: %s → %s", 
@@ -380,12 +377,8 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._attributes["Note"] = "No upcoming schedule available. Please verify on wtp.waw.pl or call 19115."
         self._attributes[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
 
-        # Update state if changed
         if self._next_departure is not None:
-            self._previous_departure = None
             self._next_departure = None
-        else:
-            self._previous_departure = None
 
     async def async_will_remove_from_hass(self):
         """Cancel any scheduled listener when removing."""
@@ -471,12 +464,23 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
         departures_count = 0
         if self.coordinator.data and hasattr(self.coordinator.data, 'departures'):
             departures_count = len(self.coordinator.data.departures or [])
-        
+
         return {
             "Last update successful": getattr(self.coordinator, 'last_update_success', False),
             "Number of fetched departures": departures_count,
             ATTR_ATTRIBUTION: CONF_ATTRIBUTION,
         }
+
+    @callback
+    def _handle_coordinator_update(self):
+        """Update friendly name with stop name when coordinator data arrives."""
+        stop_info = self._get_stop_info()
+        stop_name = stop_info.get("nazwa_zespolu")
+        if stop_name:
+            new_name = f"Line {self._line} {stop_name} {self._stop_number} Last update"
+            if self._attr_name != new_name:
+                self._attr_name = new_name
+        self.async_write_ha_state()
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):

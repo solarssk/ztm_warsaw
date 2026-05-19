@@ -199,7 +199,10 @@ class ZtmWarsawOptionsFlow(config_entries.OptionsFlow):
         schema = vol.Schema({
             vol.Optional(
                 CONF_DEPARTURES,
-                default=self._config_entry.options.get(CONF_DEPARTURES, 1)
+                default=self._config_entry.options.get(
+                    CONF_DEPARTURES,
+                    self._config_entry.data.get(CONF_DEPARTURES, 1),
+                )
             ): vol.In({
                 1: "Next departure",
                 2: "Next two departures",
