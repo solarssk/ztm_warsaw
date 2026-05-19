@@ -69,15 +69,10 @@ ZTM Warsaw Integration brings real-time public transport departure data from the
 
 ### Installation via HACS:
 
-> 🧪 Until reviewed and officially included in HACS, you can add this integration manually as a custom repository.
-
 1. In Home Assistant, go to **HACS → Integrations**.
-2. Click the three dots in the top-right corner and choose **Custom repositories**.
-3. Paste this repository URL:  
-   `https://github.com/solarssk/ztm_warsaw`
-4. Set category to **Integration** and confirm.
-5. Find and install the **Warsaw Public Transport** integration from the list.
-6. Restart Home Assistant.
+2. Search for **Warsaw Public Transport**.
+3. Click **Download** and confirm.
+4. Restart Home Assistant.
 
 ---
 

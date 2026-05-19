@@ -109,7 +109,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     stored = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
-    if stored and (coord := stored.get("coordinator")):
+    if isinstance(stored, dict):
+        coord = stored.get("coordinator")
+    elif isinstance(stored, ZTMStopCoordinator):
+        coord = stored
+    else:
+        coord = None
+    if coord:
         try:
             await coord.async_shutdown()
         except Exception:  # noqa: BLE001 - shutdown should not crash unload
