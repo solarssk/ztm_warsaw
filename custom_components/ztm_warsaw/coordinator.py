@@ -134,6 +134,8 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
             )
             return new_data
             
+        except UpdateFailed:
+            raise
         except Exception as err:
             if self.data is not None:
                 # Keep entity available with last known data; try again on next hourly tick
@@ -145,18 +147,6 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
                 return self.data
             _LOGGER.error("ZTM Coordinator [%s] — failed fetching schedule and no cached data", self.name)
             raise UpdateFailed(f"Error fetching data: {err}") from err
-
-    async def _maybe_refresh_stop_info(self):
-        """Refresh stop metadata at most once per day."""
-        today = dt_util.now().date()
-        if self._last_stopinfo_refresh_date == today:
-            return
-        try:
-            await self.client.get_stop_name()
-            self._last_stopinfo_refresh_date = today
-            _LOGGER.debug("ZTM Coordinator [%s] — stop-info refreshed", self.name)
-        except Exception as err:
-            _LOGGER.debug("ZTM Coordinator [%s] — stop-info refresh failed (non-fatal): %s", self.name, err)
 
     async def async_shutdown(self):
         """Clean up when coordinator is being shut down."""

@@ -229,8 +229,7 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         now_warsaw = ha_utcnow().astimezone()
         _LOGGER.debug("Current Warsaw time: %s", now_warsaw)
         
-        # DEBUG: Log details
-        _LOGGER.info("DEBUG %s: Current time: %s, Is night line: %s", 
+        _LOGGER.debug("DEBUG %s: Current time: %s, Is night line: %s",
                     self.entity_id, now_warsaw, self._is_night_line(self._line))
         
         # Filter out early next-day departures if we're between the last departure and 2:30,
@@ -255,13 +254,12 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
                     if same_day or before_cutoff:
                         future_departures.append(d)
         
-        # DEBUG: Log departure information
-        _LOGGER.info("DEBUG %s: Total departures: %d, Future departures: %d", 
+        _LOGGER.debug("DEBUG %s: Total departures: %d, Future departures: %d",
                     self.entity_id, len(departures), len(future_departures))
         all_sorted = sorted(data.departures, key=lambda d: d.dt)
         first_dep = all_sorted[0].dt if all_sorted else None
         last_dep = all_sorted[-1].dt if all_sorted else None
-        _LOGGER.info("DEBUG %s: First departure (raw): %s, Last departure (raw): %s", 
+        _LOGGER.debug("DEBUG %s: First departure (raw): %s, Last departure (raw): %s",
                     self.entity_id, as_local(first_dep) if first_dep else None, as_local(last_dep) if last_dep else None)
 
         # UPDATED LOGIC: Check whether to hide schedule after last departure
@@ -428,10 +426,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         """Return if entity is available."""
         return self.coordinator and self.coordinator.last_update_success
         
-    async def async_update(self):
-        """Update using coordinator data."""
-        self._update_from_coordinator()
-
     @callback
     def _handle_coordinator_update(self):
         """Handle updated data from the coordinator."""

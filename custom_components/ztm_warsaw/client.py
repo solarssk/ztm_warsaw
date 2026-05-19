@@ -155,6 +155,15 @@ class ZTMStopClient:
                 )
                 return None
             except aiohttp.ClientError as e:
+                last_exc = e
+                if attempt < self._max_retries:
+                    _LOGGER.warning(
+                        "Network error for %s: %s; retrying (%s/%s)",
+                        url, e, attempt + 1, self._max_retries
+                    )
+                    attempt += 1
+                    await asyncio.sleep(self._retry_backoff * attempt)
+                    continue
                 _LOGGER.error(
                     "Network error for %s: %s",
                     url, e
@@ -424,10 +433,6 @@ class ZTMStopClient:
 
             result = json_response.get("result")
             if not isinstance(result, list):
-                if result is None:
-                    return ZTMDepartureData(departures=[], stop_info=self._stop_name)
-                if isinstance(result, str):
-                    return ZTMDepartureData(departures=[], stop_info=self._stop_name)
                 return ZTMDepartureData(departures=[], stop_info=self._stop_name)
 
             # Parse each departure from the API response
