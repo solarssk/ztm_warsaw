@@ -52,7 +52,8 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._max_departures = max_departures
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_unique_id = f"line_{line}_from_{stop_id}_{stop_number}"
-        
+        self.entity_id = f"sensor.line_{line.lower()}_from_{stop_id}_{stop_number}"
+
         # Get stop name from coordinator if available
         stop_info = self._get_stop_info()
         stop_name = stop_info.get("nazwa_zespolu") if stop_info else None
@@ -85,8 +86,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._previous_departure = None
         self._scheduled_unsub = None
         self._last_coordinator_update = None
-        
-        # Don't set entity_id manually - let HA handle it
 
     def _get_stop_info(self):
         """Safely get stop info from coordinator data."""
@@ -444,7 +443,8 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_unique_id = f"line_{line}_from_{stop_id}_{stop_number}_last_update"
-        
+        self.entity_id = f"sensor.line_{line.lower()}_from_{stop_id}_{stop_number}_last_update"
+
         # Set friendly name
         stop_info = self._get_stop_info()
         stop_name = stop_info.get('nazwa_zespolu') if stop_info else stop_id
