@@ -114,7 +114,7 @@ class ZTMStopClient:
                     async with self._session.get(url, params=params, allow_redirects=True) as resp:
                         chunks: list[bytes] = []
                         total = 0
-                        async for chunk in resp.content:
+                        async for chunk in resp.content.iter_chunked(65536):
                             total += len(chunk)
                             if total > 2_000_000:
                                 _LOGGER.error("Response too large (>2 MB) from %s; skipping", url)
