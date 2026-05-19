@@ -11,10 +11,8 @@ from homeassistant.core import callback
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import EntityCategory
 
-from .client import ZTMStopClient
 from .const import CONF_DEPARTURES, DOMAIN, CONF_ATTRIBUTION
 from .coordinator import ZTMStopCoordinator
 
@@ -486,40 +484,17 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up ZTM sensor from a config entry."""
     try:
-        # Read configuration and options
-        data = config_entry.data
-        options = config_entry.options
+        stored = hass.data[DOMAIN][config_entry.entry_id]
+        coordinator: ZTMStopCoordinator = stored["coordinator"] if isinstance(stored, dict) else stored
 
-        stop_id = str(data["busstop_id"])
-        stop_number = str(data["busstop_nr"])
-        line = data["line"]
-        # Use departures option if set, else fallback to initial data
+        options = config_entry.options
+        data = config_entry.data
         departures = options.get(CONF_DEPARTURES, data.get(CONF_DEPARTURES, 1))
 
-        # Create session and client
-        session = async_get_clientsession(hass)
-        client = ZTMStopClient(
-            session=session,
-            api_key=data["api_key"],
-            stop_id=stop_id,
-            stop_number=stop_number,
-            line=line,
-        )
+        stop_id = coordinator.stop_id
+        stop_number = coordinator.stop_nr
+        line = coordinator.line
 
-        # Create coordinator
-        coordinator = ZTMStopCoordinator(
-            hass=hass,
-            client=client,
-            stop_id=stop_id,
-            stop_nr=stop_number,
-            line=line,
-        )
-
-        # Initialize coordinator
-        await coordinator.async_config_entry_first_refresh()
-        hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = coordinator
-
-        # Create entities
         entity = ZTMSensor(
             coordinator=coordinator,
             entry_id=config_entry.entry_id,
@@ -536,12 +511,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             stop_number=stop_number,
         )
 
-        entities = [entity, diag_sensor]
+        async_add_entities([entity, diag_sensor])
 
-        # Add entities
-        async_add_entities(entities)
-        
-        _LOGGER.info("Successfully set up ZTM sensors for line %s at stop %s/%s", 
+        _LOGGER.info("Successfully set up ZTM sensors for line %s at stop %s/%s",
                     line, stop_id, stop_number)
 
     except Exception as e:
