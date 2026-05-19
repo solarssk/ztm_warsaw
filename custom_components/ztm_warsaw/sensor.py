@@ -52,15 +52,9 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._max_departures = max_departures
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_unique_id = f"line_{line}_from_{stop_id}_{stop_number}"
-        self.entity_id = f"sensor.line_{line.lower()}_from_{stop_id}_{stop_number}"
-
-        # Get stop name from coordinator if available
-        stop_info = self._get_stop_info()
-        stop_name = stop_info.get("nazwa_zespolu") if stop_info else None
-        if stop_name:
-            self._attr_name = f"Line {line} {stop_name} {stop_number}"
-        else:
-            self._attr_name = f"Line {line} from {stop_id}/{stop_number}"
+        # Always use numeric name initially so HA registers entity_id without stop name.
+        # Stop name is applied later in async_added_to_hass after entity_id is locked.
+        self._attr_name = f"Line {line} from {stop_id}/{stop_number}"
         
         # Base attributes that don't change
         self._base_attrs = {
@@ -189,7 +183,10 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
             return
 
         data = self.coordinator.data
-        
+
+        # Update friendly name with stop name as early as possible (entity_id is already locked)
+        self._update_stop_name()
+
         # Check if coordinator has new data
         current_coordinator_update = self.coordinator.last_update_success_time
         if current_coordinator_update != self._last_coordinator_update:
@@ -290,9 +287,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
             self._set_no_departures()
             self.async_write_ha_state()
             return
-        
-        # Update stop name if available
-        self._update_stop_name()
         
         # Update state and attributes
         self._update_departure_info(future_departures, now_warsaw)
@@ -443,12 +437,7 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_unique_id = f"line_{line}_from_{stop_id}_{stop_number}_last_update"
-        self.entity_id = f"sensor.line_{line.lower()}_from_{stop_id}_{stop_number}_last_update"
-
-        # Set friendly name
-        stop_info = self._get_stop_info()
-        stop_name = stop_info.get('nazwa_zespolu') if stop_info else stop_id
-        self._attr_name = f"Line {line} {stop_name} {stop_number} Last update"
+        self._attr_name = f"Line {line} from {stop_id}/{stop_number} Last update"
 
     def _get_stop_info(self):
         """Safely get stop info from coordinator data."""
