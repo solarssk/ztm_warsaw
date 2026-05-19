@@ -52,14 +52,9 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._max_departures = max_departures
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_unique_id = f"line_{line}_from_{stop_id}_{stop_number}"
-        
-        # Get stop name from coordinator if available
-        stop_info = self._get_stop_info()
-        stop_name = stop_info.get("nazwa_zespolu") if stop_info else None
-        if stop_name:
-            self._attr_name = f"Line {line} {stop_name} {stop_number}"
-        else:
-            self._attr_name = f"Line {line} from {stop_id}/{stop_number}"
+        # Always use numeric name initially so HA registers entity_id without stop name.
+        # Stop name is applied later in async_added_to_hass after entity_id is locked.
+        self._attr_name = f"Line {line} from {stop_id}/{stop_number}"
         
         # Base attributes that don't change
         self._base_attrs = {
@@ -85,8 +80,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
         self._previous_departure = None
         self._scheduled_unsub = None
         self._last_coordinator_update = None
-        
-        # Don't set entity_id manually - let HA handle it
 
     def _get_stop_info(self):
         """Safely get stop info from coordinator data."""
@@ -182,22 +175,36 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
     def _update_from_coordinator(self):
         """Update state and attributes based on coordinator data."""
         from homeassistant.util.dt import now as ha_utcnow
-        
+
+        old_next_departure = self._next_departure
+        coordinator_has_new_data = (
+            self.coordinator is not None
+            and self.coordinator.last_update_success_time != self._last_coordinator_update
+        )
+
+        def _write_if_changed():
+            """Write HA state only when something actually changed."""
+            if self._next_departure != old_next_departure or coordinator_has_new_data:
+                self.async_write_ha_state()
+
         if not self.coordinator or not self.coordinator.data:
             _LOGGER.warning("No timetable data available from coordinator for %s", self.entity_id)
             self._set_no_departures()
-            self.async_write_ha_state()
+            _write_if_changed()
             return
 
         data = self.coordinator.data
-        
+
+        # Update friendly name with stop name as early as possible (entity_id is already locked)
+        self._update_stop_name()
+
         # Check if coordinator has new data
         current_coordinator_update = self.coordinator.last_update_success_time
-        if current_coordinator_update != self._last_coordinator_update:
+        if coordinator_has_new_data:
             _LOGGER.info("Coordinator has new data for %s, forcing full update", self.entity_id)
             self._last_coordinator_update = current_coordinator_update
             self._cancel_scheduled_update()
-        
+
         # Validate and filter departures
         valid_departures = []
         for d in (data.departures or []):
@@ -205,37 +212,30 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
                 valid_departures.append(d)
             else:
                 _LOGGER.debug("Skipping invalid departure: %s", d)
-        
+
         if not valid_departures:
             _LOGGER.info("No valid departures found for %s", self.entity_id)
             self._set_no_departures()
-            self.async_write_ha_state()
+            _write_if_changed()
             return
-        
+
         _LOGGER.debug("Found %d valid departures for %s", len(valid_departures), self.entity_id)
-        
+
         # Sort departures by time
         try:
             departures = sorted(valid_departures, key=lambda d: d.dt)
         except Exception as e:
             _LOGGER.error("Failed to sort departures for %s: %s", self.entity_id, e)
             self._set_no_departures()
-            self.async_write_ha_state()
+            _write_if_changed()
             return
 
         # Get current time
         now_warsaw = ha_utcnow().astimezone()
-        _LOGGER.debug("Current Warsaw time: %s", now_warsaw)
-        
-        _LOGGER.debug("DEBUG %s: Current time: %s, Is night line: %s",
-                    self.entity_id, now_warsaw, self._is_night_line(self._line))
-        
+
         # Filter out early next-day departures if we're between the last departure and 2:30,
         # to avoid the false impression that the morning schedule is already in effect.
-        # Cutoff threshold for day schedule between midnight and 2:30
-        cutoff_hour = 2
-        cutoff_minute = 30
-        cutoff_time = now_warsaw.replace(hour=cutoff_hour, minute=cutoff_minute, second=0, microsecond=0)
+        cutoff_time = now_warsaw.replace(hour=2, minute=30, second=0, microsecond=0)
         if now_warsaw > cutoff_time:
             cutoff_time = cutoff_time + timedelta(days=1)
 
@@ -245,65 +245,43 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
                 if self._is_night_line(self._line):
                     future_departures.append(d)
                 else:
-                    # For day lines
                     schedule_date = self._get_schedule_date(now_warsaw)
                     same_day = d.dt.date() == schedule_date
                     before_cutoff = d.dt <= cutoff_time
                     if same_day or before_cutoff:
                         future_departures.append(d)
-        
-        _LOGGER.debug("DEBUG %s: Total departures: %d, Future departures: %d",
-                    self.entity_id, len(departures), len(future_departures))
-        all_sorted = sorted(data.departures, key=lambda d: d.dt)
-        first_dep = all_sorted[0].dt if all_sorted else None
-        last_dep = all_sorted[-1].dt if all_sorted else None
-        _LOGGER.debug("DEBUG %s: First departure (raw): %s, Last departure (raw): %s",
-                    self.entity_id, as_local(first_dep) if first_dep else None, as_local(last_dep) if last_dep else None)
 
-        # UPDATED LOGIC: Check whether to hide schedule after last departure
+        # Check whether to hide schedule after last departure (day lines only)
         if not future_departures and not self._is_night_line(self._line):
-            # For day lines without future departures
             last_departure = departures[-1].dt if departures else None
-            current_hour = now_warsaw.hour
-            current_minute = now_warsaw.minute
-
-            # Check if we are in the 00:00–02:30 window
-            in_night_window = current_hour < 2 or (current_hour == 2 and current_minute <= 30)
-
+            in_night_window = now_warsaw.hour < 2 or (now_warsaw.hour == 2 and now_warsaw.minute <= 30)
             if last_departure:
                 time_since_last = now_warsaw - last_departure
-                # Add detailed logging
                 _LOGGER.debug(">>> last_departure=%s, now=%s, since_last=%s, in_night_window=%s",
                               last_departure, now_warsaw, time_since_last, in_night_window)
-                # New precise condition: hide schedule only in night window and if 5+ minutes passed since last departure
                 if in_night_window and time_since_last > timedelta(minutes=5):
-                    _LOGGER.info("Day line %s: hiding schedule (new rule) - last departure at %s (%s ago), current time %s [in night window]",
-                            self._line, last_departure, time_since_last, now_warsaw)
+                    _LOGGER.info("Day line %s: hiding schedule - last departure at %s (%s ago) [in night window]",
+                            self._line, last_departure, time_since_last)
                     self._set_no_departures()
-                    self.async_write_ha_state()
+                    _write_if_changed()
                     return
-        
-        # If there are no future departures and we are not hiding the schedule
+
+        # No future departures and not hiding — clear next departure
         if not future_departures:
             _LOGGER.info("No future departures found for %s", self.entity_id)
             self._previous_departure = self._next_departure
             self._next_departure = None
             self._set_no_departures()
-            self.async_write_ha_state()
+            _write_if_changed()
             return
-        
-        # Update stop name if available
-        self._update_stop_name()
-        
+
         # Update state and attributes
         self._update_departure_info(future_departures, now_warsaw)
-        
-        # Schedule next update
-        next_departure = future_departures[0]
-        self._schedule_update_at_departure(next_departure.dt)
-        
-        # Notify Home Assistant of state change (only once)
-        self.async_write_ha_state()
+
+        # Schedule exact trigger at next departure time
+        self._schedule_update_at_departure(future_departures[0].dt)
+
+        _write_if_changed()
 
     def _update_stop_name(self):
         """Update friendly name if stop info is now available."""
@@ -444,11 +422,7 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_unique_id = f"line_{line}_from_{stop_id}_{stop_number}_last_update"
-        
-        # Set friendly name
-        stop_info = self._get_stop_info()
-        stop_name = stop_info.get('nazwa_zespolu') if stop_info else stop_id
-        self._attr_name = f"Line {line} {stop_name} {stop_number} Last update"
+        self._attr_name = f"Line {line} from {stop_id}/{stop_number} Last update"
 
     def _get_stop_info(self):
         """Safely get stop info from coordinator data."""

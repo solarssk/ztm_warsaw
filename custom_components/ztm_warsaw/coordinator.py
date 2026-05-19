@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-from homeassistant.helpers.event import async_track_time_interval
 
 from .client import ZTMStopClient
 from .models import ZTMDepartureData
@@ -24,15 +23,6 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
         self.data: ZTMDepartureData | None = None
         self.last_update_success_time: datetime | None = None
         self._initial_refresh_done = False
-        self._daily_refresh_unsub = None
-        self._retry_unsub = None
-        self._retry_delay_seconds = 120  # seconds; coordinator-level retry after a failed 02:30 refresh
-        self._jitter_max_seconds = 45    # spread refresh calls to avoid thundering herd
-        self._midnight_refresh_unsub = None
-        self._last_success_local_date = None  # Europe/Warsaw date of last successful fetch
-        self._last_stopinfo_refresh_date = None  # Europe/Warsaw date of last stop-info refresh
-
-        self._minute_unsub = None  # 1-minute heartbeat for UI advance
 
         # Hourly timetable refresh handled by DataUpdateCoordinator
         self.update_interval = timedelta(hours=1)
@@ -48,42 +38,13 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
             try:
                 if getattr(self.client, "_stop_name", None) is None:
                     await self.client.get_stop_name()
-                    self._last_stopinfo_refresh_date = dt_util.now().date()
             except Exception:
                 _LOGGER.debug("ZTM Coordinator [%s] — initial stop-info fetch skipped (non-fatal)", self.name)
 
-        # Cancel existing schedules
-        if self._daily_refresh_unsub:
-            self._daily_refresh_unsub()
-            self._daily_refresh_unsub = None
-        if self._retry_unsub:
-            self._retry_unsub()
-            self._retry_unsub = None
-
-        # Minute heartbeat: notify sensors to advance state every minute without network I/O
-        if self._minute_unsub:
-            self._minute_unsub()
-            self._minute_unsub = None
-        self._minute_unsub = async_track_time_interval(
-            self.hass,
-            self._minute_tick,
-            timedelta(minutes=1),
-        )
-
         _LOGGER.debug(
-            "ZTM Coordinator [%s] — hourly timetable refresh enabled; no scheduled stop-info refresh",
+            "ZTM Coordinator [%s] — hourly timetable refresh enabled",
             self.name,
         )
-
-
-    async def _minute_tick(self, _now):
-        """Push an update to listeners so sensors recompute next departures against current time.
-        This does not trigger network refresh; it only re-renders based on cached data.
-        """
-        try:
-            self.async_update_listeners()
-        except Exception:  # defensive: never let UI tick crash
-            pass
 
 
     async def _async_update_data(self) -> ZTMDepartureData:
@@ -148,14 +109,5 @@ class ZTMStopCoordinator(DataUpdateCoordinator):
 
     async def async_shutdown(self):
         """Clean up when coordinator is being shut down."""
-        if self._daily_refresh_unsub:
-            self._daily_refresh_unsub()
-            self._daily_refresh_unsub = None
-        if self._retry_unsub:
-            self._retry_unsub()
-            self._retry_unsub = None
-        if self._minute_unsub:
-            self._minute_unsub()
-            self._minute_unsub = None
         self.data = None
         _LOGGER.info("ZTM Coordinator [%s] — shutdown complete", self.name)
