@@ -2,12 +2,10 @@ import logging
 from datetime import datetime, timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-import asyncio
-import random
-from homeassistant.helpers.event import async_call_later, async_track_time_interval
+from homeassistant.helpers.event import async_track_time_interval
 
 from .client import ZTMStopClient
-from .models import ZTMDepartureData, ZTMDepartureDataReading
+from .models import ZTMDepartureData
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,5 +1,4 @@
 import logging
-import re
 from datetime import datetime, timezone, timedelta, date
 from urllib.parse import quote
 from homeassistant.util.dt import as_local
@@ -144,7 +143,6 @@ class ZTMSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self):
         """Return device info for this entity."""
-        stop_info = self._get_stop_info()
         return {
             "identifiers": {(DOMAIN, f"line_{self._line}")},
             "name": f"Line {self._line}",
@@ -481,7 +479,6 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self):
         """Return device info for this entity."""
-        stop_info = self._get_stop_info()
         return {
             "identifiers": {(DOMAIN, f"line_{self._line}")},
             "name": f"Line {self._line}",
@@ -496,8 +493,7 @@ class ZTMLastUpdateSensor(CoordinatorEntity, SensorEntity):
         """Return extra attributes for diagnostics."""
         if not self.coordinator:
             return {}
-        
-        stop_info = self._get_stop_info()
+
         departures_count = 0
         if self.coordinator.data and hasattr(self.coordinator.data, 'departures'):
             departures_count = len(self.coordinator.data.departures or [])

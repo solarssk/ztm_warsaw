@@ -108,7 +108,6 @@ class ZTMStopClient:
         # English-only comments for OSS clarity
         """
         attempt = 0
-        last_exc = None
         while True:
             try:
                 async with async_timeout.timeout(self._timeout):
@@ -139,8 +138,7 @@ class ZTMStopClient:
                                 )
                                 return None
                         return text
-            except asyncio.TimeoutError as e:
-                last_exc = e
+            except asyncio.TimeoutError:
                 if attempt < self._max_retries:
                     _LOGGER.warning(
                         "Timeout talking to %s; retrying (%s/%s)",
@@ -155,7 +153,6 @@ class ZTMStopClient:
                 )
                 return None
             except aiohttp.ClientError as e:
-                last_exc = e
                 if attempt < self._max_retries:
                     _LOGGER.warning(
                         "Network error for %s: %s; retrying (%s/%s)",
