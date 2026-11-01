@@ -5,6 +5,6 @@
 # plugin moves the whole test stack, including the minimum Python: review a bump of
 # it like a Home Assistant upgrade.
 pytest-homeassistant-custom-component==0.13.373
-ruff==0.17.1
+ruff==0.17.2
 mypy==2.4.0
 pip-audit==2.10.1
