@@ -111,7 +111,15 @@ Una vecchia chiave API (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, da [api.um.warsz
 
 ## 📦 Installazione
 
-### Con HACS
+<!-- ha-marketplace:exclude-start -->
+
+### Con Marketplace (Home Assistant 2026.11+)
+
+Apri **Impostazioni → Marketplace**, cerca **Warsaw Public Transport** e installa l’integrazione. Poi segui la configurazione qui sotto; riavvia Home Assistant se richiesto.
+
+Usi già HACS? Home Assistant trasferisce automaticamente i repository installati e i relativi aggiornamenti in Marketplace.
+
+### Con HACS (Home Assistant 2026.1–2026.10)
 
 1. In Home Assistant vai su **HACS → Integrazioni**.
 2. Cerca **Trasporto pubblico di Varsavia**.
@@ -125,6 +133,8 @@ Una vecchia chiave API (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, da [api.um.warsz
 3. Riavvia Home Assistant.
 
 ---
+
+<!-- ha-marketplace:exclude-end -->
 
 ## 🔌 Configurazione
 

@@ -111,7 +111,15 @@
 
 ## 📦 Установка
 
-### Через HACS
+<!-- ha-marketplace:exclude-start -->
+
+### Через Marketplace (Home Assistant 2026.11+)
+
+Откройте **Настройки → Marketplace**, найдите **Warsaw Public Transport** и установите интеграцию. Затем перейдите к настройке ниже; перезапустите Home Assistant, если появится соответствующий запрос.
+
+Уже пользуетесь HACS? Home Assistant автоматически перенесёт установленные репозитории и их обновления в Marketplace.
+
+### Через HACS (Home Assistant 2026.1–2026.10)
 
 1. В Home Assistant откройте **HACS → Интеграции**.
 2. Найдите **Общественный транспорт Варшавы**.
@@ -125,6 +133,8 @@
 3. Перезапустите Home Assistant.
 
 ---
+
+<!-- ha-marketplace:exclude-end -->
 
 ## 🔌 Настройка
 

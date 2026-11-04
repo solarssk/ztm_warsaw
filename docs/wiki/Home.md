@@ -14,7 +14,7 @@ The integration displays **scheduled** departures. It does not know about delays
 
 ## Quick start
 
-1. Install **Warsaw Public Transport** with HACS and restart Home Assistant.
+1. Install **Warsaw Public Transport** through Marketplace (Home Assistant 2026.11+) or HACS (older versions), following [Installation](0.-Installation).
 2. Get a free token at [dane.um.warszawa.pl/pl/key-api](https://dane.um.warszawa.pl/pl/key-api).
 3. **Settings → Devices & Services → Add Integration → Warsaw Public Transport.**
 4. Paste the token, type a part of your stop's name, pick the pole, pick the line. Done.
@@ -25,7 +25,7 @@ Details: [Installation](0.-Installation) and [Configuration](1.-Configuration).
 
 | Page | What is in it |
 |---|---|
-| [Installation](0.-Installation) | HACS or manual installation, updating |
+| [Installation](0.-Installation) | Marketplace, HACS or manual installation, updating |
 | [Configuration](1.-Configuration) | Token, adding a line and stops, walking time, changing the token, removing things |
 | [Concepts](2.-Concepts) | Stop ID and pole, the service day, what each entity shows |
 | [Examples](3.-Examples) | Dashboard cards, automations and ideas to copy |

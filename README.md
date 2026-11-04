@@ -111,7 +111,15 @@ An old API key (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, from [api.um.warszawa.pl
 
 ## 📦 Installation
 
-### With HACS
+<!-- ha-marketplace:exclude-start -->
+
+### With Marketplace (Home Assistant 2026.11+)
+
+Open **Settings → Marketplace**, search for **Warsaw Public Transport** and install it. Continue with Configuration below; restart Home Assistant if prompted.
+
+Upgrading from HACS? Home Assistant moves your installed repositories and updates to Marketplace automatically.
+
+### With HACS (Home Assistant 2026.1–2026.10)
 
 1. In Home Assistant, go to **HACS → Integrations**.
 2. Search for **Warsaw Public Transport**.
@@ -125,6 +133,8 @@ An old API key (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, from [api.um.warszawa.pl
 3. Restart Home Assistant.
 
 ---
+
+<!-- ha-marketplace:exclude-end -->
 
 ## 🔌 Configuration
 
