@@ -180,7 +180,7 @@ jobs:
       # comment, so a date would go stale. Prefer a commit at least 7 days old when
       # bumping by hand. The wrapper starts the ghcr.io/home-assistant/hassfest
       # image, which this pin does not freeze.
-      - uses: home-assistant/actions/hassfest@cd6f3635a740c84d8a14f6121a90068b8ece6bf6  # default branch
+      - uses: home-assistant/actions/hassfest@86d4564712fa02543c808e3a693dd04f9d3f8361  # default branch
 
   hacs:
     name: HACS validation
