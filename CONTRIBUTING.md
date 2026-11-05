@@ -35,6 +35,8 @@ python -m pip install --require-hashes -r .github/locks/test.txt
 CI installs from the hash-locked files in `.github/locks/` (Scorecard's Pinned-Dependencies check, and a changed package on PyPI cannot slip in). `requirements_test.txt` and `.github/compat/min-ha.txt` stay the files you edit; after changing a pin, copy it to the matching `.in` file and regenerate the lock, for example
 `uv pip compile --generate-hashes --python-platform linux --python-version 3.14.2 .github/locks/test.in -o .github/locks/test.txt` (the minimum-Home-Assistant lock uses `--python-version 3.13.2`). `tests/test_locks.py` fails when they disagree.
 
+The additional `Compat smoke (current Home Assistant)` job boots Core 2026.11.0 directly, configures a line against the local fake City, checks its sensor and unloads the entry. It uses `.github/locks/ha-current.in` and its complete hash lock, independently of the pytest plugin, which still pins Core 2026.10.4. Run it with `python -m tests.compat.native_smoke` in an environment installed from that lock. Regenerate the lock with the same compile command above, replacing `test.in` and `test.txt` with `ha-current.in` and `ha-current.txt`. This smoke check does not replace the full pytest suite.
+
 The integration itself must stay valid for Home Assistant 2026.1 and Python 3.13, even though CI
 runs newer versions.
 

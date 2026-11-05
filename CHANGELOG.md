@@ -2,11 +2,19 @@
 
 What changed, written for the people who use the integration. Entries are grouped under `### Added`, `### Changed`, `### Fixed` and `### Removed` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/)), and each is a bold title with one short, friendly sentence: what you can do now, not how it was built. The details are in the pull requests.
 
-This file is the source of the GitHub Release notes, and a published Release is what makes HACS offer an update. A beta (`X.Y.ZbN`) takes its notes from `[Unreleased]`. A version that needs something from you starts with an `### Adopter action` list.
+This file is the source of the GitHub Release notes, and a published Release is what makes Marketplace and HACS offer an update. A beta (`X.Y.ZbN`) takes its notes from `[Unreleased]`. A version that needs something from you starts with an `### Adopter action` list.
 
 Releases before 1.1.4 are described on the [GitHub Releases](https://github.com/solarssk/ztm_warsaw/releases) page.
 
 ## [Unreleased]
+
+## [1.2.1] - 2026-11-04
+
+Update through Marketplace or HACS and restart Home Assistant. No reconfiguration is needed.
+
+### Changed
+
+- **Installation with Marketplace**: the installation guide now covers Home Assistant 2026.11 and keeps the HACS instructions for older versions.
 
 ## [1.2.0] - 2026-10-23
 

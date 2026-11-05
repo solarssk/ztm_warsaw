@@ -111,7 +111,15 @@ Stary klucz API (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, ze strony [api.um.warsz
 
 ## 📦 Instalacja
 
-### Przez HACS
+<!-- ha-marketplace:exclude-start -->
+
+### Przez Marketplace (Home Assistant 2026.11+)
+
+Otwórz **Ustawienia → Marketplace**, wyszukaj **Warsaw Public Transport** i zainstaluj integrację. Następnie przejdź do konfiguracji opisanej poniżej; uruchom ponownie Home Assistant, jeśli pojawi się taka prośba.
+
+Korzystasz już z HACS? Home Assistant automatycznie przeniesie zainstalowane repozytoria i ich aktualizacje do Marketplace.
+
+### Przez HACS (Home Assistant 2026.1–2026.10)
 
 1. W Home Assistant otwórz **HACS → Integracje**.
 2. Wyszukaj **Warszawski Transport Publiczny**.
@@ -125,6 +133,8 @@ Stary klucz API (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`, ze strony [api.um.warsz
 3. Uruchom ponownie Home Assistant.
 
 ---
+
+<!-- ha-marketplace:exclude-end -->
 
 ## 🔌 Konfiguracja
 
