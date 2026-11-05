@@ -1,0 +1,2 @@
+# Native compatibility smoke: independent of the pytest plugin release cycle.
+homeassistant==2026.11.0

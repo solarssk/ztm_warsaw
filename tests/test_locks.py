@@ -27,7 +27,7 @@ def test_inputs_are_the_pins_people_edit() -> None:
 
 def test_every_lock_pins_its_inputs_with_hashes() -> None:
     """Each lock contains the pin of every input and every pin in it carries a hash (what `--require-hashes` needs)."""
-    for name in ("test", "ruff", "pip-audit", "min-ha"):
+    for name in ("test", "ruff", "pip-audit", "min-ha", "ha-current"):
         wanted = _pins(LOCKS / f"{name}.in")
         locked = _pins(LOCKS / f"{name}.txt")
         assert wanted, name

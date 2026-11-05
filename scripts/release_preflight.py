@@ -52,6 +52,7 @@ REQUIRED = (
     "Release bookkeeping",
     "HACS validation",
     "Compat smoke (minimum Home Assistant)",
+    "Compat smoke (current Home Assistant)",
 )
 APP = "github-actions"
 
