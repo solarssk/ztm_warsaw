@@ -34,4 +34,4 @@ concurrency:
 jobs:
   verify:
     name: Verify standard (Tier 2)
-    uses: solarssk/playbook/.github/workflows/verify-tier.yml@0f0760fd3cf1eecee43deb2debbaa5a295fc3a8a  # v0.2.0
+    uses: solarssk/playbook/.github/workflows/verify-tier.yml@350fe17be7b29e2855967e8273726f13bbfc20f2  # v0.3.0
